@@ -2,12 +2,13 @@
   "name": "nimble",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "dist/app.js",
   "scripts": {
     "type-check": "tsc --noEmit",
     "build": "npx tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx tsx watch src/app.ts",
+    "test": "NODE_ENV=test jest --testTimeout=5000 --detectOpenHandles --coverage",
+    "dev": "NODE_ENV=development && npx tsx watch src/app.ts",
     "start": "npx tsc && node dist/app.js"
   },
   "keywords": [],

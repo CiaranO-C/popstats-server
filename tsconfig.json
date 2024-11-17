@@ -1,12 +1,17 @@
 {
   "compilerOptions": {
-    "outDir": "dist",
     
+    "moduleResolution": "Node",
+
+    "target": "ESNext",
+
+    "outDir": "dist",
+
     // Treat files as modules even if it doesn't use import/export
     "moduleDetection": "force",
 
     // Ignore module structure
-    "module": "Preserve",
+    "module": "ESNext",
 
     // Allow JSON modules to be imported
     "resolveJsonModule": true,
@@ -24,7 +29,6 @@
     "node_modules",
     "build",
     "dist",
-    "config",
     "prisma",
     "src/**/*.js"
   ]
