@@ -1,14 +1,22 @@
 import { configDotenv } from "dotenv";
-import { Request, Response } from "express"
 configDotenv();
 import e from "express";
+import cors from "cors";
+import { createHandler } from "graphql-http/lib/use/express";
+import { schema } from "./schema";
 
 const app = e();
 const PORT = process.env.PORT || 5500;
 
-app.get("/", (req: Request, res: Response) => {
-  res.json({ message: "hello" });
-});
+const allowedOrigins = ["http://localhost:5173"];
 
-console.log("hello big time")
+const options: cors.CorsOptions = {
+  origin: allowedOrigins,
+};
+
+app.use(cors(options));
+app.use(e.json({ limit: "50mb" }));
+
+app.all("/graphql", createHandler({ schema }));
+
 app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
