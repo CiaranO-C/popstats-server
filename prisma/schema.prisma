@@ -13,7 +13,7 @@ model User {
   username  String  @unique
   password  String  @map("password_hash")
   temporary Boolean @default(true)
-  sales     Sale[]  @relation("UserSales", onDelete: Cascade)   
+  buyers    Buyer[]     
 
   @@map("users")
 }
@@ -28,13 +28,11 @@ model Sale {
   paymentFee    Decimal  @db.Money @map("payment_fee")
   USSalesTax    Decimal  @db.Money @map("US_sales_tax")
   paymentMethod String   @map("payment_method")
-  items         Item[]   @relation("SaleItems", onDelete: Cascade)
+  items         Item[]   
   buyer         Buyer    @relation(fields: [buyerId], references: [username], onDelete: Cascade)
   buyerId       String
   refund        Decimal  @db.Money @map("buyer_refund")
   feeRefund     Decimal  @db.Money @map("fees_refund")
-  user          User     @relation(fields: [userId], references: [id])
-  userId        Int
 
   @@map("sales")
 }
@@ -45,7 +43,7 @@ model Item {
   descriptionLength Int    @map("description_length")
   size              String
   category          String
-  sale              Sale   @relation(fields: [saleId], references: [id])
+  sale              Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
   saleId            Int 
 
   @@map("items") 
@@ -56,6 +54,8 @@ model Buyer {
   city     String
   country  String
   bought   Sale[]
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   Int
 
   @@map("buyers")
 }
