@@ -1,21 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { dataCategories, fieldMap } from "./fileData";
-import { DataCategory, EntryItem, FileData, FileItem } from "./type";
-import currency from "currency.js";
+import { CSVRow, FileItem } from "./type";
 
-/*function prepareData(data: FileData, userId: number): Array<EntryData> {
-  const locationData: EntryData = [];
-  for (let i = 0; i < data.length; i++) {
-    const item: FileItem = data[i];
-    locationData.push(getLocations(item));
-  }
-  //const buyerData = splitData("buyer", data, userId);
-//  const saleData = splitData("sale", data, userId);
- // const itemData = splitData("item", data, userId);
-  return [locationData];
-}*/
-
-function prepareData(data: FileData, userId: number) {
+/*function prepareData(data: FileData, userId: number) {
   const locationData: Prisma.LocationCreateManyInput[] = [];
   const buyerData: Prisma.BuyerCreateWithoutBoughtInput[] = [];
   for (let i = 0; i < data.length; i++) {
@@ -25,9 +12,9 @@ function prepareData(data: FileData, userId: number) {
   }
 
   return { locationData, buyerData };
-}
+}*/
 
-function getBuyer(data: FileItem): {
+/*function getBuyer(data: FileItem): {
   relation: Prisma.BuyerCreateNestedManyWithoutUserInput;
   entry: Prisma.BuyerCreateWithoutBoughtInput;
 } {
@@ -49,7 +36,7 @@ function getBuyer(data: FileItem): {
   }
 
   return entryData;
-}
+}*/
 
 function getLocation(data: FileItem): Prisma.LocationCreateWithoutBuyersInput {
   const { location: headings } = dataCategories;
@@ -99,4 +86,46 @@ function checkMap(key: string, value: string): string | boolean | "" {
   return checked;
 }
 
-export { prepareData };
+function prepareBuyerData(
+  row: CSVRow,
+  userId: number,
+): {
+  relation: Prisma.BuyerCreateNestedManyWithoutUserInput;
+  entry: Prisma.BuyerCreateWithoutBoughtInput;
+} {
+  return {
+    relation: {
+      create: [
+        {
+          username: row["Buyer"],
+          locations: {
+            connect: [
+              {
+                city_country: {
+                  city: row["City"],
+                  country: row["Country"],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    entry: {
+      username: row["Buyer"],
+      locations: {
+        connect: [
+          {
+            city_country: {
+              city: row["City"],
+              country: row["Country"],
+            },
+          },
+        ],
+      },
+      user: { connect: { id: userId } },
+    },
+  };
+}
+
+export { prepareBuyerData };
