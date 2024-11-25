@@ -1,53 +1,16 @@
 import { Prisma } from "@prisma/client";
-import { dataCategories, fieldMap } from "./fileData";
-import { CSVRow, FileItem } from "./type";
+import { dataCategories } from "./fileData";
+import { CSVRow, FieldMapType } from "./type";
 
-/*function prepareData(data: FileData, userId: number) {
-  const locationData: Prisma.LocationCreateManyInput[] = [];
-  const buyerData: Prisma.BuyerCreateWithoutBoughtInput[] = [];
-  for (let i = 0; i < data.length; i++) {
-    const item: FileItem = data[i];
-    locationData.push(getLocation(item));
-    buyerData.push(getBuyer(item));
-  }
-
-  return { locationData, buyerData };
-}*/
-
-/*function getBuyer(data: FileItem): {
-  relation: Prisma.BuyerCreateNestedManyWithoutUserInput;
-  entry: Prisma.BuyerCreateWithoutBoughtInput;
-} {
-  const { dbRelation, db } = dataCategories.buyer;
-  const entryData = { relation: {}, entry: {} };
-
-  for (let i = 0; i < db.length; i++) {
-    const { heading, name } = db[i];
-    const value = checkMap(name, data[heading]);
-    if (value === "") continue;
-    entryData.entry[name] = value;
-  }
-
-  for (let i = 0; i < dbRelation.length; i++) {
-    const { heading, name } = dbRelation[i];
-    const value = checkMap(name, data[heading]);
-    if (value === "") continue;
-    entryData.relation[name] = value;
-  }
-
-  return entryData;
-}*/
-
-function getLocation(data: FileItem): Prisma.LocationCreateWithoutBuyersInput {
+function getLocation(row: CSVRow): Prisma.LocationCreateWithoutBuyersInput {
   const { location: headings } = dataCategories;
   const entry: Prisma.LocationCreateWithoutBuyersInput = {
-    city: "",
     country: "",
   };
 
   for (let i = 0; i < headings.length; i++) {
     const { heading, name } = headings[i];
-    const value = checkMap(name, data[heading]);
+    const value = checkFieldMap(name, row[heading]);
     entry[name] = value;
   }
 
@@ -74,58 +37,44 @@ function parseMoney(value: string): Prisma.Decimal {
   return money;
 }
 
-function checkMap(key: string, value: string): string | boolean | "" {
-  let checked = value;
-  if (fieldMap.hasOwnProperty(value)) {
-    checked =
-      value === '="-"' || value === "N/A"
-        ? fieldMap[value](key)
-        : fieldMap[value];
-  }
-
-  return checked;
-}
-
 function prepareBuyerData(
   row: CSVRow,
   userId: number,
-): {
-  relation: Prisma.BuyerCreateNestedManyWithoutUserInput;
-  entry: Prisma.BuyerCreateWithoutBoughtInput;
-} {
+): Prisma.BuyerCreateWithoutBoughtInput {
   return {
-    relation: {
-      create: [
+    username: row["Buyer"],
+    locations: {
+      connect: [
         {
-          username: row["Buyer"],
-          locations: {
-            connect: [
-              {
-                city_country: {
-                  city: row["City"],
-                  country: row["Country"],
-                },
-              },
-            ],
-          },
+          country: checkFieldMap<string>("country", row["Country"]),
         },
       ],
     },
-    entry: {
-      username: row["Buyer"],
-      locations: {
-        connect: [
-          {
-            city_country: {
-              city: row["City"],
-              country: row["Country"],
-            },
-          },
-        ],
-      },
-      user: { connect: { id: userId } },
-    },
+    user: { connect: { id: userId } },
   };
 }
 
-export { prepareBuyerData };
+function checkFieldMap<outType>(key: string, value: string): outType | string {
+  if (!fieldMap.hasOwnProperty(value)) return value;
+
+  const checked =
+    value === '="-"' || value === "N/A"
+      ? fieldMap[value](key)
+      : fieldMap[value];
+  return checked;
+}
+
+const fieldMap: FieldMapType = {
+  No: false,
+  Yes: true,
+  "N/A": (key: string) => {
+    if (key === "refund" || key === "feeRefund") return "";
+    if (key === "brand") return "Other";
+  },
+  "**ANONYMIZED**": "Other",
+  '="-"': (key: string) => {
+    if (key === "customShipPrice" || key === "total") return "£0.00";
+  },
+};
+
+export { prepareBuyerData, checkFieldMap };
