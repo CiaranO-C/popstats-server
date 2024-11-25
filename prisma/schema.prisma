@@ -13,49 +13,68 @@ model User {
   username  String  @unique
   password  String  @map("password_hash")
   temporary Boolean @default(true)
-  buyers    Buyer[]     
+  buyers    Buyer[]
+  sales     Sale[]
+  items     Item[]     
 
   @@map("users")
 }
 
 model Sale {
-  id            Int      @id @default(autoincrement())
-  dateOfSale    DateTime @map("date_of_sale")
-  timeOfSale    DateTime @map("time_of_sale")
-  shippingCost  Decimal  @db.Money @map("shipping_cost")
-  usps          Decimal  @db.Money @map("USPS_cost")
-  saleFee       Decimal  @db.Money @map("sale_fee")
-  paymentFee    Decimal  @db.Money @map("payment_fee")
-  USSalesTax    Decimal  @db.Money @map("US_sales_tax")
-  paymentMethod String   @map("payment_method")
-  items         Item[]   
-  buyer         Buyer    @relation(fields: [buyerId], references: [username], onDelete: Cascade)
-  buyerId       String
-  refund        Decimal  @db.Money @map("buyer_refund")
-  feeRefund     Decimal  @db.Money @map("fees_refund")
+  id              Int      @id @default(autoincrement())
+  dateOfSale      DateTime @map("date_of_sale")
+  timeOfSale      DateTime @map("time_of_sale")
+  customShipPrice Decimal  @db.Money @map("custom_shipping_price")
+  uspsCost        Decimal  @db.Money @map("USPS_buyer_cost")
+  paymentFee      Decimal  @db.Money @map("payment_fee")
+  paymentMethod   String   @map("payment_method")
+  items           Item[] 
+  bundle          Boolean  @default(false)  
+  total           Decimal? @db.Money
+  buyer           Buyer    @relation(fields: [buyerId], references: [username])
+  buyerId         String
+  refund          Decimal  @db.Money @map("buyer_refund")
+  feeRefund       Decimal  @db.Money @map("fees_refund")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int
 
   @@map("sales")
 }
 
 model Item {
-  id                Int    @id @default(autoincrement())
-  brand             String
-  descriptionLength Int    @map("description_length")
-  size              String
-  category          String
-  sale              Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  saleId            Int 
+  id            Int      @id @default(autoincrement())
+  dateOfListing DateTime @map("date_of_listing")
+  price         Decimal  @db.Money
+  brand         String
+  descLength    Int      @map("description_length")
+  size          String?
+  category      String
+  itemFee       Decimal  @db.Money @map("item_fee")
+  boostFee      Decimal  @db.Money @map("boosting_fee")
+  sale          Sale     @relation(fields: [saleId], references: [id])
+  saleId        Int 
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        Int
 
   @@map("items") 
 }
 
 model Buyer {
-  username String @id @map("username_hash")
-  city     String
-  country  String
-  bought   Sale[]
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId   Int
+  username  String     @id @map("username_hash")
+  locations Location[] 
+  bought    Sale[]
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
 
   @@map("buyers")
+}
+
+model Location {
+  id      Int     @id @default(autoincrement())
+  city    String  
+  country String
+  buyers  Buyer[]
+
+  @@unique([city, country])
+  @@map("locations")
 }
