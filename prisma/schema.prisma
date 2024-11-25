@@ -70,11 +70,8 @@ model Buyer {
 }
 
 model Location {
-  id      Int     @id @default(autoincrement())
-  city    String  
-  country String
+  country String  @id
   buyers  Buyer[]
 
-  @@unique([city, country])
   @@map("locations")
 }
