@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 
 interface CSVRow {
   [key: string]: string;
@@ -6,6 +5,9 @@ interface CSVRow {
 
 type CSVFile = Array<CSVRow>;
 
-type DataCategory = "buyer" | "sale" | "item";
+interface FieldMapType {
+  "N/A": "Other";
+  "**ANONYMIZED**": "Other";
+}
 
-export type { CSVRow, CSVFile, DataCategory };
+export type { CSVRow, CSVFile, FieldMapType };
