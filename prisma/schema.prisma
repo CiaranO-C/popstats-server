@@ -21,9 +21,8 @@ model User {
 }
 
 model Sale {
-  id              Int      @id @default(autoincrement())
+  id              String   @id
   dateOfSale      DateTime @map("date_of_sale")
-  timeOfSale      DateTime @map("time_of_sale")
   customShipPrice Decimal  @db.Money @map("custom_shipping_price")
   uspsCost        Decimal  @db.Money @map("USPS_buyer_cost")
   paymentFee      Decimal  @db.Money @map("payment_fee")
@@ -52,7 +51,7 @@ model Item {
   itemFee       Decimal  @db.Money @map("item_fee")
   boostFee      Decimal  @db.Money @map("boosting_fee")
   sale          Sale     @relation(fields: [saleId], references: [id])
-  saleId        Int 
+  saleId        String 
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        Int
 
@@ -60,18 +59,28 @@ model Item {
 }
 
 model Buyer {
-  username  String     @id @map("username_hash")
-  locations Location[] 
-  bought    Sale[]
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
+  username       String          @id @map("username_hash")
+  buyerLocations BuyerLocation[]
+  bought         Sale[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         Int
 
   @@map("buyers")
 }
 
 model Location {
-  country String  @id
-  buyers  Buyer[]
+  country        String  @id
+  buyerLocations BuyerLocation[]
 
   @@map("locations")
+}
+
+model BuyerLocation {
+  buyer    Buyer    @relation(fields: [username], references: [username], onDelete: Cascade)
+  username String
+  location Location @relation(fields: [country], references: [country], onDelete: Cascade)
+  country  String
+
+  @@id([username, country]) 
+  @@map("buyer_locations")
 }
