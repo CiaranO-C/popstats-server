@@ -1,40 +1,80 @@
 import { UserType } from "../user/type";
 import { createTemporaryUser } from "../user/db";
-import { CSVFile, CSVRow } from "./type";
-import { checkFieldMap, prepareBuyerData } from "./utils";
+import { CSVFile } from "./type";
 import prisma from "../../config/prisma";
+import { Prisma } from "@prisma/client";
+import { prepareData } from "./data";
 
-async function createDbEntry(row: CSVRow, userId: number) {
-  //create many to utilise skip duplicates option
-  await prisma.location.createMany({
-    data: [
-      {
-        country: checkFieldMap<string>("country", row["Country"]),
-      },
-    ],
-    skipDuplicates: true,
-  });
+async function createLocations(locations: Prisma.LocationCreateManyInput[]) {
+  try {
+    await prisma.location.createMany({
+      data: locations,
+      skipDuplicates: true,
+    });
+  } catch (error) {
+    console.error("Error creating locations", error);
+  }
+}
 
-  const buyerData = prepareBuyerData(row, userId);
+async function createBuyers(buyers: Prisma.BuyerCreateManyInput[]) {
+  try {
+    await prisma.buyer.createMany({
+      data: buyers,
+      skipDuplicates: true,
+    });
+  } catch (error) {
+    console.error("Error creating buyers", error);
+  }
+}
 
-  await prisma.buyer.upsert({
-    where: { username: row["Buyer"] },
-    create: buyerData,
-    update: {
-      locations: buyerData.locations,
-    },
-  });
+async function createBuyerLocations(
+  relations: Prisma.BuyerLocationCreateManyInput[],
+) {
+  try {
+    await prisma.buyerLocation.createMany({
+      data: relations,
+      skipDuplicates: true,
+    });
+  } catch (error) {
+    console.error("Error creating buyerLocations", error);
+  }
+}
+
+async function createSales(sales: Prisma.SaleCreateManyInput[]) {
+  try {
+    await prisma.sale.createMany({
+      data: sales,
+      skipDuplicates: true,
+    });
+  } catch (error) {
+    console.error("Error creating sales", error);
+  }
+}
+
+async function createItems(items: Prisma.ItemCreateManyInput[]) {
+  try {
+    await prisma.item.createMany({
+      data: items,
+      skipDuplicates: true,
+    });
+  } catch (error) {
+    console.error("Error creating items", error);
+  }
 }
 
 async function createSalesData(user: UserType | null, data: CSVFile) {
   if (user === null) user = await createTemporaryUser();
   const { id: userId } = user;
-
-  const promiseArray = data.map(
-    (row) => async () => createDbEntry(row, userId),
+  const { locations, buyers, buyerLocations, sales, items } = prepareData(
+    data,
+    userId,
   );
 
-  await Promise.all(promiseArray.map((fn) => fn()));
+  await createLocations(locations);
+  await createBuyers(buyers);
+  await createBuyerLocations(buyerLocations);
+  await createSales(sales);
+  await createItems(items);
 }
 
 export { createSalesData };
