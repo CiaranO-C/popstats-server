@@ -23,17 +23,17 @@ model User {
 model Sale {
   id              String   @id
   dateOfSale      DateTime @map("date_of_sale")
-  customShipPrice Decimal  @db.Money @map("custom_shipping_price")
-  uspsCost        Decimal  @db.Money @map("USPS_buyer_cost")
-  paymentFee      Decimal  @db.Money @map("payment_fee")
+  customShipPrice Decimal  @map("custom_shipping_price")
+  uspsCost        Decimal  @map("USPS_buyer_cost")
+  paymentFee      Decimal  @map("payment_fee")
   paymentMethod   String   @map("payment_method")
   items           Item[] 
   bundle          Boolean  @default(false)  
-  total           Decimal? @db.Money
+  total           Decimal? 
   buyer           Buyer    @relation(fields: [buyerId], references: [username])
   buyerId         String
-  refund          Decimal  @db.Money @map("buyer_refund")
-  feeRefund       Decimal  @db.Money @map("fees_refund")
+  refund          Decimal  @map("buyer_refund")
+  feeRefund       Decimal  @map("fees_refund")
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId          Int
 
@@ -43,13 +43,13 @@ model Sale {
 model Item {
   id            Int      @id @default(autoincrement())
   dateOfListing DateTime @map("date_of_listing")
-  price         Decimal  @db.Money
+  price         Decimal  
   brand         String
   descLength    Int      @map("description_length")
   size          String?
   category      String
-  itemFee       Decimal  @db.Money @map("item_fee")
-  boostFee      Decimal  @db.Money @map("boosting_fee")
+  itemFee       Decimal  @map("item_fee")
+  boostFee      Decimal  @map("boosting_fee")
   sale          Sale     @relation(fields: [saleId], references: [id])
   saleId        String 
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
