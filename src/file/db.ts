@@ -5,76 +5,75 @@ import prisma from "../../config/prisma";
 import { Prisma } from "@prisma/client";
 import { prepareData } from "./data";
 
-async function createLocations(locations: Prisma.LocationCreateManyInput[]) {
-  try {
-    await prisma.location.createMany({
-      data: locations,
-      skipDuplicates: true,
-    });
-  } catch (error) {
-    console.error("Error creating locations", error);
-  }
+async function createLocations(
+  locations: Prisma.LocationCreateManyInput[],
+  tx: Prisma.TransactionClient,
+) {
+  await tx.location.createMany({
+    data: locations,
+    skipDuplicates: true,
+  });
 }
 
-async function createBuyers(buyers: Prisma.BuyerCreateManyInput[]) {
-  try {
-    await prisma.buyer.createMany({
-      data: buyers,
-      skipDuplicates: true,
-    });
-  } catch (error) {
-    console.error("Error creating buyers", error);
-  }
+async function createBuyers(
+  buyers: Prisma.BuyerCreateManyInput[],
+  tx: Prisma.TransactionClient,
+) {
+  await tx.buyer.createMany({
+    data: buyers,
+    skipDuplicates: true,
+  });
 }
 
 async function createBuyerLocations(
   relations: Prisma.BuyerLocationCreateManyInput[],
+  tx: Prisma.TransactionClient,
 ) {
-  try {
-    await prisma.buyerLocation.createMany({
-      data: relations,
-      skipDuplicates: true,
-    });
-  } catch (error) {
-    console.error("Error creating buyerLocations", error);
-  }
+  await tx.buyerLocation.createMany({
+    data: relations,
+    skipDuplicates: true,
+  });
 }
 
-async function createSales(sales: Prisma.SaleCreateManyInput[]) {
-  try {
-    await prisma.sale.createMany({
-      data: sales,
-      skipDuplicates: true,
-    });
-  } catch (error) {
-    console.error("Error creating sales", error);
-  }
+async function createSales(
+  sales: Prisma.SaleCreateManyInput[],
+  tx: Prisma.TransactionClient,
+) {
+  await tx.sale.createMany({
+    data: sales,
+    skipDuplicates: true,
+  });
 }
 
-async function createItems(items: Prisma.ItemCreateManyInput[]) {
-  try {
-    await prisma.item.createMany({
-      data: items,
-      skipDuplicates: true,
-    });
-  } catch (error) {
-    console.error("Error creating items", error);
-  }
+async function createItems(
+  items: Prisma.ItemCreateManyInput[],
+  tx: Prisma.TransactionClient,
+) {
+  await tx.item.createMany({
+    data: items,
+    skipDuplicates: true,
+  });
 }
 
-async function createSalesData(user: UserType | null, data: CSVFile) {
-  if (user === null) user = await createTemporaryUser();
+async function createSalesData(
+  user: UserType | null,
+  data: CSVFile,
+  tx: Prisma.TransactionClient,
+) {
+  if (user === null) user = await createTemporaryUser(tx);
   const { id: userId } = user;
   const { locations, buyers, buyerLocations, sales, items } = prepareData(
     data,
     userId,
   );
 
-  await createLocations(locations);
-  await createBuyers(buyers);
-  await createBuyerLocations(buyerLocations);
-  await createSales(sales);
-  await createItems(items);
+  await createLocations(locations, tx);
+  await createBuyers(buyers, tx);
+  await createBuyerLocations(buyerLocations, tx);
+  await createSales(sales, tx);
+  await createItems(items, tx);
+
+  return true;
 }
 
 export { createSalesData };
