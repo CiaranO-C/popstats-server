@@ -9,15 +9,24 @@ datasource db {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
-  username  String  @unique
-  password  String  @map("password_hash")
-  temporary Boolean @default(true)
-  buyers    Buyer[]
+  id        Int         @id @default(autoincrement())
+  username  String      @unique
+  password  String      @map("password_hash")
+  temporary Boolean     @default(true)
+  buyers    UserBuyer[]
   sales     Sale[]
   items     Item[]     
 
   @@map("users")
+}
+
+model File {
+  hash    String 
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId Int
+
+  @@id([hash, ownerId])
+  @@map("files")
 }
 
 model Sale {
@@ -30,7 +39,7 @@ model Sale {
   items           Item[] 
   bundle          Boolean  @default(false)  
   total           Decimal? 
-  buyer           Buyer    @relation(fields: [buyerId], references: [username])
+  buyer           Buyer    @relation(fields: [buyerId, userId], references: [username, userId])
   buyerId         String
   refund          Decimal  @map("buyer_refund")
   feeRefund       Decimal  @map("fees_refund")
@@ -59,12 +68,13 @@ model Item {
 }
 
 model Buyer {
-  username       String          @id @map("username_hash")
+  username       String          
   buyerLocations BuyerLocation[]
   bought         Sale[]
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  users          UserBuyer[]     
   userId         Int
 
+  @@id([username, userId])
   @@map("buyers")
 }
 
@@ -76,11 +86,22 @@ model Location {
 }
 
 model BuyerLocation {
-  buyer    Buyer    @relation(fields: [username], references: [username], onDelete: Cascade)
+  buyer    Buyer    @relation(fields: [username, userId], references: [username, userId], onDelete: Cascade)
   username String
+  userId   Int
   location Location @relation(fields: [country], references: [country], onDelete: Cascade)
   country  String
 
   @@id([username, country]) 
   @@map("buyer_locations")
+}
+
+model UserBuyer {
+  userId   Int
+  buyerId  String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  buyer    Buyer  @relation(fields: [buyerId, userId], references: [username, userId])
+
+  @@id([userId, buyerId])
+  @@map("user_buyers")
 }
