@@ -9,26 +9,16 @@ datasource db {
 }
 
 model User {
-  id        Int         @id @default(autoincrement())
-  username  String      @unique
-  password  String      @map("password_hash")
-  temporary Boolean     @default(true)
-  files     File[]
-  buyers    UserBuyer[]
-  sales     Sale[]
-  items     Item[]     
+  id         Int         @id @default(autoincrement())
+  username   String      @unique
+  password   String      @map("password_hash")
+  temporary  Boolean     @default(true)
+  files      File[]
+  buyers     UserBuyer[]
+  sales      Sale[]
+  items      Item[]  
 
   @@map("users")
-}
-
-model DateRange {
-  id       Int      @id @default(autoincrement())
-  earliest DateTime
-  latest   DateTime
-  userId   Int      @unique
-  user     User     @relation(fields: [userId], references: [id])
-
-  @@map("date_range")
 }
 
 model File {
@@ -62,7 +52,7 @@ model Sale {
 }
 
 model Item {
-  id            Int      @id @default(autoincrement())
+  id            String
   dateOfListing DateTime @map("date_of_listing")
   price         Decimal  
   brand         String
@@ -76,6 +66,7 @@ model Item {
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        Int
 
+  @@id([id, userId])
   @@map("items") 
 }
 
