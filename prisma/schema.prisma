@@ -103,5 +103,6 @@ model UserBuyer {
   buyer    Buyer  @relation(fields: [buyerId], references: [username])
 
   @@id([userId, buyerId])
+  @@index([buyerId])
   @@map("user_buyers")
 }
