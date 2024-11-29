@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { CSVFile, CSVRow } from "./type";
 import {
   checkFieldMap,
+  generateItemId,
   generateSaleId,
   parseDateTime,
   parseMoney,
@@ -13,13 +14,19 @@ function prepareLocationData(row: CSVRow): Prisma.LocationCreateManyInput {
   };
 }
 
-function prepareBuyerData(
-  row: CSVRow,
-  userId: number,
-): Prisma.BuyerCreateManyInput {
+function prepareBuyerData(row: CSVRow): Prisma.BuyerCreateManyInput {
   return {
     username: row["Buyer"],
+  };
+}
+
+function prepareUserBuyers(
+  row: CSVRow,
+  userId: number,
+): Prisma.UserBuyerCreateManyInput {
+  return {
     userId,
+    buyerId: row["Buyer"],
   };
 }
 
@@ -57,12 +64,13 @@ function prepareItemData(
   userId: number,
 ): Prisma.ItemCreateManyInput {
   return {
+    id: generateItemId(row),
     dateOfListing: parseDateTime(row["Date of listing"]),
     price: parseMoney(row["Item price"]),
     brand: checkFieldMap(row["Brand"]),
     descLength: row["Description"].length,
     size: row["Size"] === "" ? "Other" : row["Size"],
-    category: row["Category"],
+    category: checkFieldMap(row["Category"]),
     itemFee: parseMoney(row["Depop fee"]),
     boostFee: parseMoney(row["Boosting fee"]),
     saleId: generateSaleId(row),
@@ -74,17 +82,20 @@ function prepareData(data: CSVFile, userId: number) {
   const locations: Prisma.LocationCreateManyInput[] = [];
   const buyers: Prisma.BuyerCreateManyInput[] = [];
   const buyerLocations: Prisma.BuyerLocationCreateManyInput[] = [];
+  const userBuyers: Prisma.UserBuyerCreateManyInput[] = [];
   const sales: Prisma.SaleCreateManyInput[] = [];
   const items: Prisma.ItemCreateManyInput[] = [];
+
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
     locations.push(prepareLocationData(row));
-    buyers.push(prepareBuyerData(row, userId));
+    buyers.push(prepareBuyerData(row));
+    userBuyers.push(prepareUserBuyers(row, userId));
     buyerLocations.push(prepareBuyerLocations(row));
     sales.push(prepareSaleData(row, userId));
     items.push(prepareItemData(row, userId));
   }
-  return { locations, buyers, buyerLocations, sales, items };
+  return { locations, buyers, userBuyers, buyerLocations, sales, items };
 }
 
 export { prepareData };
