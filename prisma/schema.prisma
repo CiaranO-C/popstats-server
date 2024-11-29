@@ -10,6 +10,7 @@ datasource db {
 
 model User {
   id         Int         @id @default(autoincrement())
+  createdAt  DateTime    @default(now()) @map("created_at")
   username   String      @unique
   password   String      @map("password_hash")
   temporary  Boolean     @default(true)
