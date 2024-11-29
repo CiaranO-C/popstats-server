@@ -32,6 +32,7 @@
     "express": "^4.21.1",
     "express-validator": "^7.2.0",
     "graphql": "^16.9.0",
-    "graphql-http": "^1.22.2"
+    "graphql-http": "^1.22.2",
+    "xxhashjs": "^0.2.2"
   }
 }
