@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { CSVRow, FieldMapType } from "./type";
+import XXH from "xxhashjs";
 
 function parseDateTime(date: string, time = "0:00 AM"): Date {
   const [day, month, year] = date.split("/").map(Number);
@@ -26,6 +27,40 @@ function generateSaleId(row: CSVRow): string {
   return id;
 }
 
+function generateItemId(row: CSVRow): string {
+  const idFields = [
+    "Date of sale",
+    "Time of sale",
+    "Date of listing",
+    "Bundle",
+    "Buyer",
+    "Description",
+    "Size",
+    "Item price",
+    "Buyer shipping cost",
+    "Total",
+    "Depop fee",
+    "Depop Payments fee",
+    "Boosting fee",
+    "Payment type",
+    "City",
+    "Country",
+    "Refunded to buyer amount",
+    "Fees refunded to seller",
+  ];
+
+  let toHash: string = "";
+  idFields.forEach((field) => (toHash += row[field]));
+  const hash = XXH.h32(toHash, 0).toString(16);
+
+  return hash;
+}
+
+function hashFileData(fileData: string) {
+  const hash = XXH.h32(fileData, 0xabcd).toString(16);
+  return hash;
+}
+
 function checkFieldMap(value: string): string {
   if (!fieldMap.hasOwnProperty(value)) return value;
 
@@ -36,6 +71,14 @@ function checkFieldMap(value: string): string {
 const fieldMap: FieldMapType = {
   "N/A": "Other",
   "**ANONYMIZED**": "Other",
+  "Sweaters": "Jumpers",
 };
 
-export { generateSaleId, parseDateTime, parseMoney, checkFieldMap };
+export {
+  generateSaleId,
+  generateItemId,
+  parseDateTime,
+  parseMoney,
+  checkFieldMap,
+  hashFileData,
+};
