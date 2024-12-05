@@ -1,8 +1,10 @@
 import { Prisma } from "@prisma/client";
+import { CSVFile } from "../file/type";
+import { parseDateTime } from "../file/utils";
 
 async function validateFile(
   hash: string,
-  userId: number,
+  userId: string,
   tx: Prisma.TransactionClient,
 ) {
   const hashExists = await tx.file.findUnique({
@@ -18,14 +20,36 @@ async function validateFile(
   return true;
 }
 
-async function createFileEntry(
-  ownerId: number,
-  hash: string,
+async function deleteTempUserFiles(
+  userId: string,
   tx: Prisma.TransactionClient,
 ) {
+  const { temporary } = await tx.user.findUnique({ where: { id: userId } });
+  if (temporary) deleteUserFiles(userId, tx);
+}
+
+async function deleteUserFiles(userId: string, tx: Prisma.TransactionClient) {
+  const deleted = await tx.file.deleteMany({
+    where: { ownerId: userId },
+  });
+  return deleted;
+}
+
+async function createFileEntry(
+  ownerId: string,
+  hash: string,
+  parsedFile: CSVFile,
+  tx: Prisma.TransactionClient,
+) {
+  const startDate = parseDateTime(parsedFile[0]["Date of sale"]);
+  const endDate = parseDateTime(
+    parsedFile[parsedFile.length - 1]["Date of sale"],
+  );
   const entry = await tx.file.create({
     data: {
       hash,
+      startDate,
+      endDate,
       owner: {
         connect: {
           id: ownerId,
@@ -101,6 +125,8 @@ export {
   createBuyerLocations,
   createBuyers,
   createFileEntry,
+  deleteUserFiles,
+  deleteTempUserFiles,
   createItems,
   createLocations,
   createSales,
