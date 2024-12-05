@@ -9,7 +9,7 @@ datasource db {
 }
 
 model User {
-  id         Int         @id @default(autoincrement())
+  id         String      @id 
   createdAt  DateTime    @default(now()) @map("created_at")
   username   String      @unique
   password   String      @map("password_hash")
@@ -23,9 +23,15 @@ model User {
 }
 
 model File {
-  hash    String 
-  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId Int
+  hash       String 
+  owner      User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId    String      @map("owner_id")
+  uploadDate DateTime    @default(now()) @map("upload_date")
+  startDate  DateTime    @map("start_date")
+  endDate    DateTime    @map("end_date")
+  sales      Sale[]
+  buyers     UserBuyer[]
+  items      Item[]
 
   @@id([hash, ownerId])
   @@map("files")
@@ -42,11 +48,13 @@ model Sale {
   bundle          Boolean  @default(false)  
   total           Decimal? 
   buyer           Buyer    @relation(fields: [buyerId], references: [username])
-  buyerId         String
+  buyerId         String   @map("buyer_id")
   refund          Decimal  @map("buyer_refund")
   feeRefund       Decimal  @map("fees_refund")
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId          Int
+  file            File     @relation(fields: [fileId, userId], references: [hash, ownerId], onDelete: Cascade)
+  fileId          String   @map("file_id")
+  user            User     @relation(fields: [userId], references: [id])
+  userId          String   @map("user_id")
 
   @@id([id, userId])
   @@map("sales")
@@ -63,9 +71,11 @@ model Item {
   itemFee       Decimal  @map("item_fee")
   boostFee      Decimal  @map("boosting_fee")
   sale          Sale     @relation(fields: [saleId, userId], references: [id, userId])
-  saleId        String 
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId        Int
+  saleId        String   @map("sale_id")
+  file          File     @relation(fields: [fileId, userId], references: [hash, ownerId], onDelete: Cascade)
+  fileId        String   @map("file_id")
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String   @map("user_id")
 
   @@id([id, userId])
   @@map("items") 
@@ -73,7 +83,7 @@ model Item {
 
 model Buyer {
   username       String          @id        
-  buyerLocations BuyerLocation[]
+  buyerLocations BuyerLocation[] 
   bought         Sale[]
   users          UserBuyer[]     
 
@@ -98,9 +108,11 @@ model BuyerLocation {
 }
 
 model UserBuyer {
-  userId   Int
-  buyerId  String
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileId   String @map("file_id")
+  userId   String @map("user_id")
+  buyerId  String @map("buyer_id")
+  file     File   @relation(fields: [fileId, userId], references: [hash, ownerId], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id])
   buyer    Buyer  @relation(fields: [buyerId], references: [username])
 
   @@id([userId, buyerId])
