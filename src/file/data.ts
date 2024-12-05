@@ -22,10 +22,12 @@ function prepareBuyerData(row: CSVRow): Prisma.BuyerCreateManyInput {
 
 function prepareUserBuyers(
   row: CSVRow,
-  userId: number,
+  userId: string,
+  fileId: string,
 ): Prisma.UserBuyerCreateManyInput {
   return {
     userId,
+    fileId,
     buyerId: row["Buyer"],
   };
 }
@@ -41,7 +43,8 @@ function prepareBuyerLocations(
 
 function prepareSaleData(
   row: CSVRow,
-  userId: number,
+  userId: string,
+  fileId: string,
 ): Prisma.SaleCreateManyInput {
   return {
     id: generateSaleId(row),
@@ -56,12 +59,14 @@ function prepareSaleData(
     feeRefund: parseMoney(row["Fees refunded to seller"]),
     buyerId: row["Buyer"],
     userId,
+    fileId,
   };
 }
 
 function prepareItemData(
   row: CSVRow,
-  userId: number,
+  userId: string,
+  fileId: string,
 ): Prisma.ItemCreateManyInput {
   return {
     id: generateItemId(row),
@@ -75,10 +80,11 @@ function prepareItemData(
     boostFee: parseMoney(row["Boosting fee"]),
     saleId: generateSaleId(row),
     userId,
+    fileId,
   };
 }
 
-function prepareData(data: CSVFile, userId: number) {
+function prepareData(userId: string, data: CSVFile, fileId: string) {
   const locations: Prisma.LocationCreateManyInput[] = [];
   const buyers: Prisma.BuyerCreateManyInput[] = [];
   const buyerLocations: Prisma.BuyerLocationCreateManyInput[] = [];
@@ -86,14 +92,29 @@ function prepareData(data: CSVFile, userId: number) {
   const sales: Prisma.SaleCreateManyInput[] = [];
   const items: Prisma.ItemCreateManyInput[] = [];
 
+  const monthRangePerFile = 3;
+  const firstDate = parseDateTime(data[0]["Date of sale"]);
+  const endDate = new Date(firstDate);
+  endDate.setMonth(firstDate.getMonth() + monthRangePerFile);
+  console.log("first date -> ", firstDate);
+  console.log("last date -> ", endDate);
+
+  function validateDate(endDate: Date, rowDate: string): boolean {
+    const rowDateObj = parseDateTime(rowDate);
+    return endDate >= rowDateObj;
+  }
+
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
+    //if row date is greater than 3 months from start of data, break
+    if (!validateDate(endDate, row["Date of sale"])) break;
+
     locations.push(prepareLocationData(row));
     buyers.push(prepareBuyerData(row));
-    userBuyers.push(prepareUserBuyers(row, userId));
+    userBuyers.push(prepareUserBuyers(row, userId, fileId));
     buyerLocations.push(prepareBuyerLocations(row));
-    sales.push(prepareSaleData(row, userId));
-    items.push(prepareItemData(row, userId));
+    sales.push(prepareSaleData(row, userId, fileId));
+    items.push(prepareItemData(row, userId, fileId));
   }
   return { locations, buyers, userBuyers, buyerLocations, sales, items };
 }
