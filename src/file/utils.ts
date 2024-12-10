@@ -1,18 +1,29 @@
 import { Prisma } from "@prisma/client";
 import { CSVRow, FieldMapType } from "./type";
 import XXH from "xxhashjs";
+import { generateIdHash } from "../upload/utils";
 
-function parseDateTime(date: string, time = "0:00 AM"): Date {
+function parseDateTime(date: string): Date {
   const [day, month, year] = date.split("/").map(Number);
-  const [timeOfDay, marker] = time.split(" ");
-  let [hours, minutes] = timeOfDay.split(":").map(Number);
-
-  if (marker === "PM" && hours < 12) hours += 12;
-  if (marker === "AM" && hours === 12) hours = 0;
-
-  const dateTime = new Date(year, month - 1, day, hours, minutes);
+  const dateTime = new Date(year, month - 1, day);
 
   return dateTime;
+}
+
+function convertToHours(time: string): number {
+  const [timeOfDay, marker] = time.split(" ");
+  let [hours, minutes] = timeOfDay.split(":").map(Number);
+  //round to nearest hour
+  hours = minutes > 30 ? hours + 1 : hours;
+
+  if (marker === "AM" && hours === 12) {
+    hours = 0;
+  }
+  if (marker === "PM" && hours !== 12) {
+    hours += 12;
+  }
+
+  return hours;
 }
 
 function parseMoney(value: string): Prisma.Decimal {
@@ -23,8 +34,9 @@ function parseMoney(value: string): Prisma.Decimal {
 }
 
 function generateSaleId(row: CSVRow): string {
-  const id = `${row["Date of sale"]}-${row["Time of sale"]}-${row["Bundle"]}-${row["Buyer"]}`;
-  return id;
+  const idFields = ["Date of sale", "Time of sale", "Bundle", "Buyer"];
+  const hash = generateIdHash(idFields, row);
+  return hash;
 }
 
 function generateItemId(row: CSVRow): string {
@@ -49,10 +61,7 @@ function generateItemId(row: CSVRow): string {
     "Fees refunded to seller",
   ];
 
-  let toHash: string = "";
-  idFields.forEach((field) => (toHash += row[field]));
-  const hash = XXH.h32(toHash, 0).toString(16);
-
+  const hash = generateIdHash(idFields, row);
   return hash;
 }
 
@@ -71,13 +80,14 @@ function checkFieldMap(value: string): string {
 const fieldMap: FieldMapType = {
   "N/A": "Other",
   "**ANONYMIZED**": "Other",
-  "Sweaters": "Jumpers",
+  Sweaters: "Jumpers",
 };
 
 export {
   generateSaleId,
   generateItemId,
   parseDateTime,
+  convertToHours,
   parseMoney,
   checkFieldMap,
   hashFileData,
