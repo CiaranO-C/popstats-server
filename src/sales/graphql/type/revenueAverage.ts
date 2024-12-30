@@ -1,5 +1,6 @@
 import {
   GraphQLFloat,
+  GraphQLInt,
   GraphQLList,
   GraphQLObjectType,
   GraphQLString,
@@ -24,7 +25,7 @@ const AverageSalesDaily = new GraphQLList(
   }),
 );
 
-const AverageSalesByDate = new GraphQLObjectType({
+const AvgSalesByDate = new GraphQLObjectType({
   name: "AverageSalesByDate",
   fields: {
     monthly: {
@@ -36,4 +37,14 @@ const AverageSalesByDate = new GraphQLObjectType({
   },
 });
 
-export default AverageSalesByDate;
+const AvgSalesByHour = new GraphQLList(
+  new GraphQLObjectType({
+    name: "AverageSalesByHour",
+    fields: {
+      hour: { type: GraphQLInt },
+      average: { type: GraphQLFloat },
+    },
+  }),
+);
+
+export { AvgSalesByDate, AvgSalesByHour };
