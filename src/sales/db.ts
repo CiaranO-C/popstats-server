@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import prisma from "../../../config/prisma";
+import prisma from "../../config/prisma";
 
 async function countSales(condition: Prisma.SaleWhereInput): Promise<number> {
   const count = await prisma.sale.count({ where: condition });
