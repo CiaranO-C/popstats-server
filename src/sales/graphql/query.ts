@@ -4,7 +4,7 @@ import { salesCountType, salesRevenueType } from "./type";
 const SalesType = new GraphQLObjectType({
   name: "Sales",
   fields: {
-    count: { type: salesCountType },
+    count: { type: salesCountType, resolve: () => ({}) },
     revenue: { type: salesRevenueType, resolve: () => ({}) },
   },
 });
