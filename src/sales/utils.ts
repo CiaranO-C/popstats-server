@@ -9,6 +9,7 @@ function groupDates(data, group: DateGroup) {
     let dateInfo: number;
     switch (group) {
       case "day":
+        console.log(date);
         dateInfo = date.getUTCDay();
         break;
       case "month":
@@ -23,19 +24,21 @@ function groupDates(data, group: DateGroup) {
       groupedData[dateInfo].length++;
       continue;
     }
-    groupedData[dateInfo] = { total, length: 1 };
+    groupedData[dateInfo] = { total, length: 1, date };
   }
   return groupedData;
 }
 
 function groupDateAverage(data, group: DateGroup) {
-  const dateData: { [field: string]: { total: number; length: number } } =
-    groupDates(data, group);
-  const averageArr = Object.entries(dateData).map((date) => {
-    const average = date[1].total / date[1].length;
+  const dateData: {
+    [field: string]: { total: number; length: number; date: Date };
+  } = groupDates(data, group);
+
+  const averageArr = Object.values(dateData).map(({ total, length, date }) => {
+    const average = total / length;
     return {
       average: average.toFixed(2),
-      date: date[0],
+      date: date.toISOString(),
     };
   });
 
