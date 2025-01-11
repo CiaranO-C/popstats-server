@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../../../../config/prisma";
-import { groupItems } from "../../../items/db";
-import { aggregateSales, countSales, findSales, groupSales } from "../../db";
+import { aggregateSales, groupSales } from "../../db";
 import { groupDateAverage } from "../../utils";
 
 async function revenueByDate(parent, args, context) {
@@ -15,6 +14,7 @@ async function revenueByDate(parent, args, context) {
       paymentFee: true,
       refund: true,
       feeRefund: true,
+      customShipPrice: true,
       items: { select: { itemFee: true, boostFee: true } },
     },
   });
@@ -48,7 +48,14 @@ async function revenueByDate(parent, args, context) {
       const date = sale.dateOfSale;
       const keyExists = grouped[date];
 
-      const { total, paymentFee, refund, feeRefund, itemFees } = sale;
+      const {
+        total,
+        paymentFee,
+        refund,
+        feeRefund,
+        itemFees,
+        customShipPrice,
+      } = sale;
       const net = parseFloat(
         (total + feeRefund - (paymentFee + refund + itemFees)).toFixed(2),
       );
@@ -57,12 +64,16 @@ async function revenueByDate(parent, args, context) {
         grouped[date].total = parseFloat(
           (grouped[date].total + total).toFixed(2),
         );
-        grouped[date].net += net;
+        grouped[date].net = parseFloat((grouped[date].net + net).toFixed(2));
+        grouped[date].shipping = parseFloat(
+          (grouped[date].shipping + customShipPrice).toFixed(2),
+        );
       } else {
         grouped[date] = {
           total,
           net,
           date,
+          shipping: customShipPrice,
         };
       }
     });
@@ -87,29 +98,6 @@ async function sumRevenue(parent, args, context) {
   return _sum?.total;
 }
 
-/*async function netRevenueByDate() {
-    const res = await prisma.sale.findMany({
-        select: {
-        items: { select: { _ }}
-        }
-    })
-  const itemFees = await groupItems({
-    by: ["saleId"],
-    _sum: {
-      itemFee: true,
-    },
-    orderBy: { saleId: "asc" },
-  });
-  const saleData = await findSales({})
-  const netRevenue = [];
-  for (let i = 0; i < itemFees.length; i++) {
-    if (itemFees[i].saleId === saleData[i].id) {
-      const itemFee = itemFees[i]._sum?.itemFee;
-      netRevenue.push({})
-    }
-  }
-}
-netRevenueByDate();*/
 async function sumNetRevenue(parent, args, context) {
   const { userId }: { userId: string } = context;
   const { _sum } = await aggregateSales({

@@ -4,21 +4,10 @@ import {
   avgRevenueByDate,
   avgRevenueByHour,
   revenueByDate,
+  sumNetRevenue,
   sumRevenue,
 } from "../resolver/revenue";
-import { AvgSalesByDate, AvgSalesByHour } from "./averageByDate";
-
-const dateGroupedScalars = {
-  total: { type: GraphQLFloat },
-  date: { type: GraphQLDateTime },
-};
-
-const RevenueByDate = new GraphQLList(
-  new GraphQLObjectType({
-    name: "DateGroupedTotal",
-    fields: dateGroupedScalars,
-  }),
-);
+import { AvgSalesByDate, AvgSalesByHour } from "./revenueAverage";
 
 const AvgRevenue = new GraphQLObjectType({
   name: "AverageSales",
@@ -34,10 +23,25 @@ const AvgRevenue = new GraphQLObjectType({
   },
 });
 
+const dateGroupedScalars = {
+  total: { type: GraphQLFloat },
+  net: { type: GraphQLFloat },
+  date: { type: GraphQLDateTime },
+  shipping: { type: GraphQLFloat },
+};
+
+const RevenueByDate = new GraphQLList(
+  new GraphQLObjectType({
+    name: "DateGroupedTotal",
+    fields: dateGroupedScalars,
+  }),
+);
+
 const salesRevenueType = new GraphQLObjectType({
   name: "SalesRevenue",
   fields: {
     total: { type: GraphQLFloat, resolve: sumRevenue },
+    net: { type: GraphQLFloat, resolve: sumNetRevenue },
     byDate: {
       type: new GraphQLObjectType({
         name: "SalesRevenueByDate",
