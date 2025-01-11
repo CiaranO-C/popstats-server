@@ -6,7 +6,7 @@ async function deleteTemporaryUsers() {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
     const { count } = await prisma.user.deleteMany({
       where: {
-        temporary: true,
+        role: "TEMPORARY",
         createdAt: { lte: oneHourAgo },
       },
     });

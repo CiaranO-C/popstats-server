@@ -5,7 +5,14 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL_DEV")
+}
+
+enum Role {
+  USER
+  ADMIN
+  DEMO
+  TEMPORARY
 }
 
 model User {
@@ -13,11 +20,11 @@ model User {
   createdAt  DateTime    @default(now()) @map("created_at")
   username   String      @unique
   password   String      @map("password_hash")
-  temporary  Boolean     @default(true)
   files      File[]
   buyers     UserBuyer[]
   sales      Sale[]
   items      Item[]  
+  role       Role        @default(TEMPORARY)
 
   @@map("users")
 }
@@ -54,7 +61,7 @@ model Sale {
   feeRefund       Decimal  @map("fees_refund")
   file            File     @relation(fields: [fileId, userId], references: [hash, ownerId], onDelete: Cascade)
   fileId          String   @map("file_id")
-  user            User     @relation(fields: [userId], references: [id])
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId          String   @map("user_id")
 
   @@id([id, userId])
@@ -75,7 +82,7 @@ model Item {
   saleId        String   @map("sale_id")
   file          File     @relation(fields: [fileId, userId], references: [hash, ownerId], onDelete: Cascade)
   fileId        String   @map("file_id")
-  user          User     @relation(fields: [userId], references: [id])
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String   @map("user_id")
 
   @@id([id, userId])
@@ -113,7 +120,7 @@ model UserBuyer {
   userId   String @map("user_id")
   buyerId  String @map("buyer_id")
   file     File   @relation(fields: [fileId, userId], references: [hash, ownerId], onDelete: Cascade)
-  user     User   @relation(fields: [userId], references: [id])
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   buyer    Buyer  @relation(fields: [buyerId], references: [username])
 
   @@id([userId, buyerId])
