@@ -13,6 +13,8 @@
     // Ignore module structure
     "module": "ESNext",
 
+    "strictNullChecks": true,
+
     // Allow JSON modules to be imported
     "resolveJsonModule": true,
 
