@@ -1,5 +1,5 @@
 function convertBigInts(
-  dataArr: { [field: string]: Date | bigint }[],
+  dataArr: { [field: string]: Date | bigint | string }[],
   keysToIgnore: string[],
 ) {
   const converted = dataArr.map((row) => {

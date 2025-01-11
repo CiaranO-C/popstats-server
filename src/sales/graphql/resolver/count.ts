@@ -1,4 +1,4 @@
-import prisma from "../../../../config/prisma";
+import { convertBigInts } from "../../../utils/convert";
 import { countSaleItemsByDate, countSales, countSalesByDate } from "../../db";
 
 async function getSaleCount(parent, args, context) {
@@ -6,22 +6,6 @@ async function getSaleCount(parent, args, context) {
   const saleCount = await countSales({ userId });
 
   return saleCount;
-}
-
-function convertBigInts(
-  dataArr: { [field: string]: Date | bigint }[],
-  keysToIgnore: string[],
-) {
-  const countConverted = dataArr.map((row) => {
-    const rowArr = Object.entries(row);
-    const converted = rowArr.map(([key, value]) => {
-      if (keysToIgnore.includes(key)) return [key, value];
-      return [key, Number(value)];
-    });
-
-    return Object.fromEntries(converted);
-  });
-  return countConverted;
 }
 
 async function countByDate(parent, args, context) {
