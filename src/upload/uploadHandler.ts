@@ -1,10 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { parse } from "@fast-csv/parse";
 import multer from "multer";
-import { createFileEntry, validateFile } from "./db";
-import { hashFileData, createSalesData } from "./utils";
-import { createTemporaryUser } from "../user/db";
-import prisma from "../../config/prisma";
+import { createFileEntry, deleteTempUserFiles, validateFile } from "./db.js";
+import { hashFileData, createSalesData, csvToJson } from "./utils.js";
+import { createUser } from "../user/db.js";
+import prisma from "../../config/prisma.js";
 
 const upload = multer({
   fileFilter: (req, file, cb) => {
@@ -24,47 +23,33 @@ async function uploadCsvFile(
       res.status(400).json({ error: "No file uploaded" });
       return;
     }
-
+    const { file } = req;
     let user = req.body.user;
-    const upload = await prisma.$transaction(async (tx) => {
-      //if (!user) user = await createTemporaryUser(tx);
-      const user = { id: 22 };
-      const fileString = req.file.buffer.toString();
+    await prisma.$transaction(async (tx) => {
+      if (!user) user = await createUser(tx);
+
+      const fileString = file.buffer.toString();
       const fileHash = hashFileData(fileString);
       const isValid = await validateFile(fileHash, user.id, tx);
-      if (isValid) {
-        await createFileEntry(user.id, fileHash, tx);
-      } else {
+      if (!isValid) {
         res.status(422).json({ error: "Duplicate file" });
         return;
       }
 
       const parsedData = await csvToJson(fileString);
-      const uploaded = await createSalesData(user.id, parsedData, tx);
+      await deleteTempUserFiles(user.id, tx);
+      await createFileEntry(user.id, fileHash, parsedData, tx);
+      const uploaded = await createSalesData(user.id, parsedData, fileHash, tx);
       console.log("upload success -> ", uploaded);
-      res.json({ message: "Success!" })
+      res.json({
+        userId: user.id,
+        message: `Sucessfully uploaded user: ${user.id} data`,
+      });
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error parsing CSV" });
   }
 }
-
-async function csvToJson(fileString: string) {
-  const rows = [];
-
-  await new Promise<void>((resolve, reject) => {
-    const stream = parse({ headers: true })
-      .on("error", (error) => reject(error))
-      .on("data", (row) => rows.push(row))
-      .on("end", (rowCount: number) => resolve());
-    stream.write(fileString);
-    stream.end();
-  });
-
-  return rows;
-}
-
-const uploadSingleFile = [recieveFile, uploadCsvFile];
 
 export { recieveFile, uploadCsvFile };
