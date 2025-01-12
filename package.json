@@ -9,7 +9,7 @@
     "build": "npx tsc",
     "test": "NODE_ENV=test jest --testTimeout=5000 --detectOpenHandles --coverage",
     "dev": "NODE_ENV=development && npx tsx watch src/app.ts",
-    "start": "npx tsc && node dist/app.js"
+    "start": "npx tsc && node dist/src/app.js"
   },
   "keywords": [],
   "author": "",
