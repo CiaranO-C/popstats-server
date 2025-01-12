@@ -1,11 +1,11 @@
 import { configDotenv } from "dotenv";
 configDotenv();
-import e, { Request } from "express";
+import e from "express";
 import cors from "cors";
 import { createHandler } from "graphql-http/lib/use/express";
-import schema from "./graphql/schema";
+import schema from "./graphql/schema.js";
 
-import { uploadRouter } from "./upload/uploadRouter";
+import { uploadRouter } from "./upload/uploadRouter.js";
 
 const app = e();
 const PORT = process.env.PORT || 5500;

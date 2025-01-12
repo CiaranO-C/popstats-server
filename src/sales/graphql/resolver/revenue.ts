@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
-import prisma from "../../../../config/prisma";
-import { aggregateSales, groupSales } from "../../db";
-import { groupDateAverage } from "../../utils";
+import prisma from "../../../../config/prisma.js";
+import { aggregateSales, groupSales } from "../../db.js";
+import { groupDateAverage } from "../../utils.js";
 
 async function revenueByDate(parent, args, context) {
   const { userId }: { userId: string } = context;

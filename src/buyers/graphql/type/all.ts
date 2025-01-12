@@ -4,7 +4,7 @@ import {
   GraphQLObjectType,
   GraphQLString,
 } from "graphql";
-import { countAllBuyers, getAllBuyersList } from "../resolver/all";
+import { countAllBuyers, getAllBuyersList } from "../resolver/all.js";
 
 const AllBuyersList = new GraphQLList(GraphQLString);
 

@@ -1,6 +1,8 @@
 interface UserType {
-  id: number;
+  id: string;
   username: string;
 }
 
-export type { UserType }
+type UserRole = "USER" | "ADMIN" | "DEMO" | "TEMPORARY";
+
+export type { UserType, UserRole };

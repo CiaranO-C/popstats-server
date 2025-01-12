@@ -1,12 +1,13 @@
 import { Prisma } from "@prisma/client";
-import { CSVFile, CSVRow } from "./type";
+import { CSVFile, CSVRow } from "./type.js";
 import {
   checkFieldMap,
+  convertToHours,
   generateItemId,
   generateSaleId,
   parseDateTime,
   parseMoney,
-} from "./utils";
+} from "./utils.js";
 
 function prepareLocationData(row: CSVRow): Prisma.LocationCreateManyInput {
   return {
@@ -48,7 +49,8 @@ function prepareSaleData(
 ): Prisma.SaleCreateManyInput {
   return {
     id: generateSaleId(row),
-    dateOfSale: parseDateTime(row["Date of sale"], row["Time of sale"]),
+    dateOfSale: parseDateTime(row["Date of sale"]),
+    timeOfSale: convertToHours(row["Time of sale"]),
     customShipPrice: parseMoney(row["Buyer shipping cost"]),
     uspsCost: parseMoney(row["USPS Cost"]),
     paymentFee: parseMoney(row["Depop Payments fee"]),

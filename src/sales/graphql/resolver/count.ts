@@ -1,5 +1,5 @@
-import { convertBigInts } from "../../../utils/convert";
-import { countSaleItemsByDate, countSales, countSalesByDate } from "../../db";
+import { convertBigInts } from "../../../utils/convert.js";
+import { countSaleItemsByDate, countSales, countSalesByDate } from "../../db.js";
 
 async function getSaleCount(parent, args, context) {
   const { userId } = context;

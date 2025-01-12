@@ -6,8 +6,8 @@ import {
   revenueByDate,
   sumNetRevenue,
   sumRevenue,
-} from "../resolver/revenue";
-import { AvgSalesByDate, AvgSalesByHour } from "./revenueAverage";
+} from "../resolver/revenue.js";
+import { AvgSalesByDate, AvgSalesByHour } from "./revenueAverage.js";
 
 const AvgRevenue = new GraphQLObjectType({
   name: "AverageSales",

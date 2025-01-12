@@ -1,5 +1,5 @@
-import { convertBigInts } from "../../../utils/convert";
-import { buyersByCountry } from "../../db";
+import { convertBigInts } from "../../../utils/convert.js";
+import { buyersByCountry } from "../../db.js";
 
 async function getBuyersByCountry(parent, args, context) {
   const { userId } = context;

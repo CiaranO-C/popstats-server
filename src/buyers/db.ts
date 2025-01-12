@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import prisma from "../../config/prisma";
+import prisma from "../../config/prisma.js";
 
 async function countBuyers(args: Prisma.UserBuyerCountArgs) {
   const count = await prisma.userBuyer.count(args);

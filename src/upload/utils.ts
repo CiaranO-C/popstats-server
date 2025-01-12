@@ -7,10 +7,10 @@ import {
   createLocations,
   createSales,
   createUserBuyers,
-} from "./db";
-import { prepareData } from "./data";
+} from "./db.js";
+import { prepareData } from "./data.js";
 import { parse } from "@fast-csv/parse";
-import { CSVFile, CSVRow } from "./type";
+import { CSVFile, CSVRow } from "./type.js";
 
 function hashFileData(fileData: string): string {
   const hash = XXH.h32(fileData, 0xabcd).toString(16);
@@ -69,25 +69,28 @@ function parseDateTime(date: string): Date {
   return dateTime;
 }
 
-function convertToHours(time: string): number {
+function convertToHours(time) {
   const [timeOfDay, marker] = time.split(" ");
   let [hours, minutes] = timeOfDay.split(":").map(Number);
-  //round to nearest hour
-  hours = minutes > 30 ? hours + 1 : hours;
 
-  if (marker === "AM" && hours === 12) {
-    hours = 0;
-  }
-  if (marker === "PM" && hours !== 12) {
-    hours += 12;
+  //convert to 24hr
+  hours = (hours % 12) + (marker === "PM" ? 12 : 0);
+  //round hour up
+  if (minutes > 30) {
+    hours = (hours + 1) % 24;
   }
 
   return hours;
 }
 
+function checkIfPlaceholder(value: string) {
+  const checked = value === '="-"' || value === "N/A" ? "0" : value;
+  return checked;
+}
+
 function parseMoney(value: string): Prisma.Decimal {
-  const checkedValue = value === '="-"' || value === "N/A" ? "0" : value;
-  const money = new Prisma.Decimal(checkedValue.replace("£", ""));
+  const checkedValue = checkIfPlaceholder(value);
+  const money = new Prisma.Decimal(checkedValue.replace(/[\p{Sc}]/gu, ""));
 
   return money;
 }

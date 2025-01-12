@@ -1,4 +1,4 @@
-import { DateGroup } from "./type";
+import { DateGroup } from "./type.js";
 
 function groupDates(data, group: DateGroup) {
   const groupedData = {};

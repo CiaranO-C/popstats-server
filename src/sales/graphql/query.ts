@@ -1,5 +1,5 @@
 import { GraphQLObjectType } from "graphql";
-import { salesCountType, salesRevenueType } from "./type";
+import { salesCountType, salesRevenueType } from "./type/index.js";
 
 const SalesType = new GraphQLObjectType({
   name: "Sales",

@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
-import { CSVFile } from "../file/type";
-import { parseDateTime } from "../file/utils";
+import { CSVFile } from "./type.js";
+import { parseDateTime } from "./utils.js";
 
 async function validateFile(
   hash: string,
@@ -24,8 +24,13 @@ async function deleteTempUserFiles(
   userId: string,
   tx: Prisma.TransactionClient,
 ) {
-  const { temporary } = await tx.user.findUnique({ where: { id: userId } });
-  if (temporary) deleteUserFiles(userId, tx);
+  const user = await tx.user.findUniqueOrThrow({
+    where: { id: userId, role: "TEMPORARY" },
+  });
+
+  if (user) {
+    await deleteUserFiles(user.id, tx);
+  }
 }
 
 async function deleteUserFiles(userId: string, tx: Prisma.TransactionClient) {

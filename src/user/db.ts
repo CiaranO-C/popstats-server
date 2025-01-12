@@ -1,17 +1,20 @@
 import { Prisma } from "@prisma/client";
-import { UserType } from "./type";
+import { UserRole, UserType } from "./type.js";
 
-async function createTemporaryUser(
+async function createUser(
   tx: Prisma.TransactionClient,
+  role: UserRole = "TEMPORARY",
 ): Promise<UserType> {
   const { id, username } = await tx.user.create({
     data: {
+      id: crypto.randomUUID(),
       username: `user${crypto.randomUUID()}`,
       password: crypto.randomUUID(),
+      role,
     },
   });
 
   return { id, username };
 }
 
-export { createTemporaryUser };
+export { createUser };

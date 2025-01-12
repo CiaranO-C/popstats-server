@@ -1,4 +1,4 @@
-import { countBuyers, findManyBuyers } from "../../db";
+import { countBuyers, findManyBuyers } from "../../db.js";
 
 async function countAllBuyers(parent, args, context) {
   const { userId } = context;

@@ -1,4 +1,4 @@
-import { groupSales } from "../../../sales/db";
+import { groupSales } from "../../../sales/db.js";
 
 async function getRepeatBuyers(parent, args, context) {
   const { userId } = context;

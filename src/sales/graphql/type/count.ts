@@ -1,6 +1,6 @@
 import { GraphQLInt, GraphQLList, GraphQLObjectType } from "graphql";
-import { countByDate, countSaleItems } from "../resolver/count";
-import { GraphQLDate, GraphQLDateTime } from "graphql-scalars";
+import { countByDate, countSaleItems } from "../resolver/count.js";
+import { GraphQLDateTime } from "graphql-scalars";
 
 const salesCountScalars = {
   sales: { type: GraphQLInt }, //total num of sales
