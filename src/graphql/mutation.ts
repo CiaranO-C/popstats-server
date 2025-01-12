@@ -1,11 +1,8 @@
 import { GraphQLObjectType } from "graphql";
-import { uploadFile } from "../file/mutation";
 
 const mutation = new GraphQLObjectType({
   name: "Mutation",
-  fields: {
-    uploadFile,
-  },
+  fields: {},
 });
 
 export default mutation;
