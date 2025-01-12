@@ -10,7 +10,7 @@ import { uploadRouter } from "./upload/uploadRouter.js";
 const app = e();
 const PORT = process.env.PORT || 5500;
 
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = ["http://localhost:5173", "https://popstats.vercel.app", "https://www.popstats.io"];
 
 const options: cors.CorsOptions = {
   origin: allowedOrigins,
