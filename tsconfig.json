@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    
+    "skipLibCheck": true,
+
     "moduleResolution": "Node",
 
     "target": "ESNext",
@@ -27,11 +28,5 @@
     // Disallow features that require cross-file awareness
     "isolatedModules": true
   },
-  "exclude": [
-    "node_modules",
-    "build",
-    "dist",
-    "prisma",
-    "src/**/*.js"
-  ]
+  "exclude": ["node_modules", "build", "dist", "prisma", "src/**/*.js"]
 }
