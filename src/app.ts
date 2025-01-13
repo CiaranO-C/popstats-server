@@ -10,11 +10,24 @@ import { uploadRouter } from "./upload/uploadRouter.js";
 const app = e();
 const PORT = process.env.PORT || 5500;
 
-const allowedOrigins = ["http://localhost:5173", "https://popstats.vercel.app", "https://www.popstats.io"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://popstats.vercel.app",
+  "https://www.popstats.io",
+];
 
 const options: cors.CorsOptions = {
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Invalid origin"));
+    }
+  },
+  credentials: true,
 };
+
+app.set("trust proxy", true);
 
 app.use(cors(options));
 app.use(e.json({ limit: "50mb" }));
@@ -35,7 +48,5 @@ app.all(
     },
   }),
 );
-
-
 
 app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
