@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { UserRole, UserType } from "./type.js";
+import * as crypto from "crypto";
 
 async function createUser(
   tx: Prisma.TransactionClient,
