@@ -1,5 +1,5 @@
 //cron job script to remove temporary users older than or equal to 1hr
-import prisma from "../config/prisma";
+import prisma from "../config/prisma.js";
 
 async function deleteTemporaryUsers() {
   try {

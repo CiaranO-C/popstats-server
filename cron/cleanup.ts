@@ -1,7 +1,9 @@
 //cron job script to clean up orphaned data in DB
-import prisma from "../config/prisma";
+import prisma from "../config/prisma.js";
 
 async function deleteOrphanedRecords() {
+  console.log(process.env.NODE_ENV);
+
   try {
     const cleanup = await prisma.$transaction(async (tx) => {
       const buyersDeleted = await tx.buyer.deleteMany({
