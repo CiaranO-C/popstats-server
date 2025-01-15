@@ -1,21 +1,31 @@
-import { Prisma } from "@prisma/client";
-import { UserRole, UserType } from "./type.js";
+import { $Enums, Prisma } from "@prisma/client";
+import { UserType } from "./type.js";
 import * as crypto from "crypto";
+import prisma from "../../config/prisma.js";
 
 async function createUser(
   tx: Prisma.TransactionClient,
-  role: UserRole = "TEMPORARY",
+  username: string = `user${crypto.randomUUID()}`,
+  password: string = crypto.randomUUID(),
+  role: $Enums.Role = "TEMPORARY",
 ): Promise<UserType> {
-  const { id, username } = await tx.user.create({
+  const user = await tx.user.create({
     data: {
       id: crypto.randomUUID(),
-      username: `user${crypto.randomUUID()}`,
-      password: crypto.randomUUID(),
+      username,
+      password,
       role,
     },
   });
 
-  return { id, username };
+  return user;
 }
 
-export { createUser };
+async function findUser(id: string) {
+  const user = await prisma.user.findUnique({ where: { id } });
+  console.log(user);
+  
+  return user;
+}
+
+export { createUser, findUser };

@@ -1,8 +1,11 @@
-interface UserType {
+import { $Enums } from "@prisma/client";
+
+type UserType = {
   id: string;
+  createdAt: Date;
   username: string;
-}
+  password: string;
+  role: $Enums.Role;
+};
 
-type UserRole = "USER" | "ADMIN" | "DEMO" | "TEMPORARY";
-
-export type { UserType, UserRole };
+export type { UserType };
