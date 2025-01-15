@@ -1,9 +1,31 @@
 import { NextFunction, Request, Response } from "express";
 import multer from "multer";
-import { createFileEntry, deleteTempUserFiles, validateFile } from "./db.js";
+import {
+  createFileEntry,
+  deleteUserFiles,
+  validateFile,
+} from "./db.js";
 import { hashFileData, createSalesData, csvToJson } from "./utils.js";
-import { createUser } from "../user/db.js";
+import { createUser, findUser } from "../user/db.js";
 import prisma from "../../config/prisma.js";
+import { UserType } from "../user/type.js";
+
+async function retrieveUser(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const userId = req.body.userId ?? "";
+    const user = await findUser(userId);
+
+    req.body.user = user;
+    next();
+  } catch (error) {
+    console.error("Error in retrieveUser middleware -> ", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
 
 const upload = multer({
   fileFilter: (req, file, cb) => {
@@ -18,38 +40,43 @@ async function uploadCsvFile(
   res: Response,
   next: NextFunction,
 ): Promise<void> {
+  const errorMap = {
+    noFile: { statusCode: 400, message: "No file uploaded" },
+    duplicate: { statusCode: 422, message: "Duplicate file" },
+  };
   try {
-    if (!req.file) {
-      res.status(400).json({ error: "No file uploaded" });
-      return;
-    }
+    if (!req.file) throw errorMap.noFile;
+
     const { file } = req;
-    let user = req.body.user;
+    const fileString = file.buffer.toString();
+    const fileHash = hashFileData(fileString);
+    const parsedData = await csvToJson(fileString);
+    let user: UserType | null = req.body.user;
     await prisma.$transaction(async (tx) => {
+      //if user null create temporary user
       if (!user) user = await createUser(tx);
 
-      const fileString = file.buffer.toString();
-      const fileHash = hashFileData(fileString);
       const isValid = await validateFile(fileHash, user.id, tx);
-      if (!isValid) {
-        res.status(422).json({ error: "Duplicate file" });
-        return;
-      }
+      if (!isValid) throw errorMap.duplicate;
 
-      const parsedData = await csvToJson(fileString);
-      await deleteTempUserFiles(user.id, tx);
+      //remove existing user files to limit temp users to 1
+      if (user.role === "TEMPORARY") await deleteUserFiles(user.id, tx);
+
       await createFileEntry(user.id, fileHash, parsedData, tx);
-      const uploaded = await createSalesData(user.id, parsedData, fileHash, tx);
-      console.log("upload success -> ", uploaded);
-      res.json({
-        userId: user.id,
-        message: `Sucessfully uploaded user: ${user.id} data`,
-      });
+      await createSalesData(user.id, parsedData, fileHash, tx);
+    });
+    res.json({
+      userId: user?.id,
+      message: `Sucessfully uploaded user: ${user?.id} data`,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error parsing CSV" });
+    if (error.statusCode && error.message) {
+      res.status(error.statusCode).json({ error: error.message });
+    } else {
+      console.error(error);
+      res.status(500).json({ error: "Error parsing CSV" });
+    }
   }
 }
 
-export { recieveFile, uploadCsvFile };
+export { recieveFile, uploadCsvFile, retrieveUser };

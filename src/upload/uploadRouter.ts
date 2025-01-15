@@ -3,6 +3,6 @@ import * as handler from "./uploadHandler.js";
 
 const uploadRouter = Router();
 
-uploadRouter.post("/", handler.recieveFile, handler.uploadCsvFile);
+uploadRouter.post("/", handler.recieveFile, handler.retrieveUser, handler.uploadCsvFile);
 
 export { uploadRouter };
