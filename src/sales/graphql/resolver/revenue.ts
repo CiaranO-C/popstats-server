@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../../../../config/prisma.js";
-import { aggregateSales, groupSales } from "../../db.js";
+import { aggregateSales, calcTotalNetRevenue, groupSales } from "../../db.js";
 import { groupDateAverage } from "../../utils.js";
 
 async function revenueByDate(parent, args, context) {
@@ -95,23 +95,15 @@ async function sumRevenue(parent, args, context) {
       total: true,
     },
   });
+
   return _sum?.total;
 }
 
 async function sumNetRevenue(parent, args, context) {
   const { userId }: { userId: string } = context;
-  const { _sum } = await aggregateSales({
-    where: {
-      userId,
-    },
-    _sum: {
-      total: true,
-      refund: true,
-      feeRefund: true,
-      paymentFee: true,
-    },
-  });
-  return _sum?.total;
+  const net = await calcTotalNetRevenue(userId);
+
+  return net;
 }
 
 async function avgRevenueByHour(parent, args, context) {

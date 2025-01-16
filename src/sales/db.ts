@@ -41,6 +41,38 @@ async function countSaleItemsByDate(userId: string) {
   return count;
 }
 
+async function calcTotalNetRevenue(userId: string): Promise<number> {
+  const res: { netRevenue: number }[] = await prisma.$queryRaw`
+      SELECT 
+        SUM(s.partialNet - i.totalItemFee) as "netRevenue"
+      FROM (
+        SELECT 
+          id, 
+          SUM(total + fees_refund - (payment_fee + buyer_refund)) as partialNet 
+        FROM 
+          sales 
+        WHERE 
+          user_id = ${userId} 
+        GROUP BY 
+          id
+      ) s 
+      LEFT JOIN (
+        SELECT 
+          sale_id, 
+          SUM(item_fee + boosting_fee) AS totalItemFee 
+        FROM 
+          items
+        WHERE
+          items.user_id = ${userId} 
+        GROUP BY 
+          sale_id
+      ) i 
+      ON 
+        s.id = i.sale_id;`;
+
+  return res[0].netRevenue;
+}
+
 async function groupSales(
   args: Prisma.SaleGroupByArgs & {
     orderBy: Prisma.SaleGroupByArgs["orderBy"];
@@ -67,4 +99,5 @@ export {
   groupSales,
   aggregateSales,
   findSales,
+  calcTotalNetRevenue,
 };
