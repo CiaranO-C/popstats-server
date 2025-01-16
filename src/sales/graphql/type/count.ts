@@ -1,11 +1,18 @@
 import { GraphQLInt, GraphQLList, GraphQLObjectType } from "graphql";
-import { countByDate, countSaleItems } from "../resolver/count.js";
+import {
+  countByDate,
+  countSaleItems,
+  getBundlesCount,
+  getRefundCount,
+  getSaleCount,
+} from "../resolver/count.js";
 import { GraphQLDateTime } from "graphql-scalars";
 
 const salesCountScalars = {
-  sales: { type: GraphQLInt }, //total num of sales
-  refunds: { type: GraphQLInt }, //total num of refunds
-  bundles: { type: GraphQLInt }, //total num of bundles
+  //field resolvers only invoked if no parent resolver provides value for field
+  sales: { type: GraphQLInt, resolve: getSaleCount },
+  refunds: { type: GraphQLInt, resolve: getRefundCount },
+  bundles: { type: GraphQLInt, resolve: getBundlesCount },
 };
 
 const CountByDate = new GraphQLList(
