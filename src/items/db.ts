@@ -10,4 +10,10 @@ async function groupItems(
   return grouped;
 }
 
-export { groupItems };
+async function countItems(args: Prisma.ItemCountArgs) {
+  const count = await prisma.item.count(args);
+
+  return count;
+}
+
+export { groupItems, countItems };

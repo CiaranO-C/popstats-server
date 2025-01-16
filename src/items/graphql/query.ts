@@ -1,8 +1,11 @@
 import { GraphQLObjectType } from "graphql";
+import { ItemsCountType } from "./type/count.js";
 
 const ItemsType = new GraphQLObjectType({
   name: "Items",
-  fields: {},
+  fields: {
+    count: { type: ItemsCountType, resolve: () => ({}) },
+  },
 });
 
 const items = {
