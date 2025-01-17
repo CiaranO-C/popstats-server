@@ -1,7 +1,10 @@
 <img width="1055" alt="Screenshot 2025-01-10 at 20 07 53" src="https://github.com/user-attachments/assets/42f91bce-398d-4ffe-bed5-4fd81b1c7c43" />
 
 ## 👋 Introduction
-Welcome to the Popstats Server repository! This backend powers the Popstats platform, providing data processing, storage and API functionality.
+Welcome to the Popstats Server repository! This backend powers the Popstats platform, providing data processing, storage and API functionality.  
+## 🚀 Visit Popstats  
+See Popstats for yourself here!  
+[Popstats](https://www.popstats.io)
 ## 📌 Features
 - **GraphQL API:** Built on Express with GraphQL, providing flexible data queries.
 - **CSV Upload & Parsing:** Allows for the uploading and parsing of Depop sales CSV files, all handled server-side to reduce client-side computation.
