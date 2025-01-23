@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { CSVFile } from "./type.js";
+import { CountryType, CSVFile } from "./type.js";
 import { parseDateTime } from "./utils.js";
 
 async function validateFile(
@@ -44,11 +44,13 @@ async function createFileEntry(
   ownerId: string,
   hash: string,
   parsedFile: CSVFile,
+  country: CountryType,
   tx: Prisma.TransactionClient,
 ) {
-  const startDate = parseDateTime(parsedFile[0]["Date of sale"]);
+  const startDate = parseDateTime(parsedFile[0]["Date of sale"], country);
   const endDate = parseDateTime(
     parsedFile[parsedFile.length - 1]["Date of sale"],
+    country,
   );
   const entry = await tx.file.create({
     data: {

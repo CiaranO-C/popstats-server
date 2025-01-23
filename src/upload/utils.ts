@@ -10,7 +10,7 @@ import {
 } from "./db.js";
 import { prepareData } from "./data.js";
 import { parse } from "@fast-csv/parse";
-import { CSVFile, CSVRow } from "./type.js";
+import { CSVFile, CSVRow, CountryType } from "./type.js";
 
 function hashFileData(fileData: string): string {
   const hash = XXH.h32(fileData, 0xabcd).toString(16);
@@ -29,10 +29,11 @@ async function createSalesData(
   userId: string,
   fileData: CSVFile,
   fileId: string,
+  country: CountryType,
   tx: Prisma.TransactionClient,
 ) {
   const { locations, buyers, userBuyers, buyerLocations, sales, items } =
-    prepareData(userId, fileData, fileId);
+    prepareData(userId, fileData, country, fileId);
 
   await createLocations(locations, tx);
   await createBuyers(buyers, tx);
@@ -62,8 +63,12 @@ async function csvToJson(fileString: string): Promise<CSVFile> {
   return rows;
 }
 
-function parseDateTime(date: string): Date {
-  const [day, month, year] = date.split("/").map(Number);
+function parseDateTime(date: string, dateType: CountryType): Date {
+  const dateArr = date.split("/").map(Number);
+  const day = dateType === "GB" ? dateArr[0] : dateArr[1];
+  const month = dateType === "GB" ? dateArr[1] : dateArr[0];
+  const year = dateArr[2];
+
   const dateTime = new Date(year, month - 1, day);
 
   return dateTime;
@@ -140,6 +145,12 @@ const fieldMap = {
   Sweaters: "Jumpers",
 } as const;
 
+function getUserCountry(row: CSVRow): CountryType {
+  const currencySymbol = row["Item price"].charAt(0);
+
+  return currencySymbol === "$" ? "USA" : "GB";
+}
+
 export {
   hashFileData,
   createSalesData,
@@ -152,4 +163,5 @@ export {
   convertToHours,
   generateItemId,
   generateSaleId,
+  getUserCountry,
 };

@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { CSVFile, CSVRow } from "./type.js";
+import { CountryType, CSVFile, CSVRow } from "./type.js";
 import {
   checkFieldMap,
   convertToHours,
@@ -44,12 +44,13 @@ function prepareBuyerLocations(
 
 function prepareSaleData(
   row: CSVRow,
+  country: CountryType,
   userId: string,
   fileId: string,
 ): Prisma.SaleCreateManyInput {
   return {
     id: generateSaleId(row),
-    dateOfSale: parseDateTime(row["Date of sale"]),
+    dateOfSale: parseDateTime(row["Date of sale"], country),
     timeOfSale: convertToHours(row["Time of sale"]),
     customShipPrice: parseMoney(row["Buyer shipping cost"]),
     uspsCost: parseMoney(row["USPS Cost"]),
@@ -67,12 +68,13 @@ function prepareSaleData(
 
 function prepareItemData(
   row: CSVRow,
+  country: CountryType,
   userId: string,
   fileId: string,
 ): Prisma.ItemCreateManyInput {
   return {
     id: generateItemId(row),
-    dateOfListing: parseDateTime(row["Date of listing"]),
+    dateOfListing: parseDateTime(row["Date of listing"], country),
     price: parseMoney(row["Item price"]),
     brand: checkFieldMap(row["Brand"]),
     descLength: row["Description"].length,
@@ -86,7 +88,12 @@ function prepareItemData(
   };
 }
 
-function prepareData(userId: string, data: CSVFile, fileId: string) {
+function prepareData(
+  userId: string,
+  data: CSVFile,
+  country: CountryType,
+  fileId: string,
+) {
   const locations: Prisma.LocationCreateManyInput[] = [];
   const buyers: Prisma.BuyerCreateManyInput[] = [];
   const buyerLocations: Prisma.BuyerLocationCreateManyInput[] = [];
@@ -95,14 +102,14 @@ function prepareData(userId: string, data: CSVFile, fileId: string) {
   const items: Prisma.ItemCreateManyInput[] = [];
 
   const monthRangePerFile = 3;
-  const firstDate = parseDateTime(data[0]["Date of sale"]);
+  const firstDate = parseDateTime(data[0]["Date of sale"], country);
   const endDate = new Date(firstDate);
   endDate.setMonth(firstDate.getMonth() + monthRangePerFile);
   console.log("first date -> ", firstDate);
   console.log("last date -> ", endDate);
 
   function validateDate(endDate: Date, rowDate: string): boolean {
-    const rowDateObj = parseDateTime(rowDate);
+    const rowDateObj = parseDateTime(rowDate, country);
     return endDate >= rowDateObj;
   }
 
@@ -115,8 +122,8 @@ function prepareData(userId: string, data: CSVFile, fileId: string) {
     buyers.push(prepareBuyerData(row));
     userBuyers.push(prepareUserBuyers(row, userId, fileId));
     buyerLocations.push(prepareBuyerLocations(row));
-    sales.push(prepareSaleData(row, userId, fileId));
-    items.push(prepareItemData(row, userId, fileId));
+    sales.push(prepareSaleData(row, country, userId, fileId));
+    items.push(prepareItemData(row, country, userId, fileId));
   }
   return { locations, buyers, userBuyers, buyerLocations, sales, items };
 }

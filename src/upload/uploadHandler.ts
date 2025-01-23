@@ -5,7 +5,7 @@ import {
   deleteUserFiles,
   validateFile,
 } from "./db.js";
-import { hashFileData, createSalesData, csvToJson } from "./utils.js";
+import { hashFileData, createSalesData, csvToJson, getUserCountry } from "./utils.js";
 import { createUser, findUser } from "../user/db.js";
 import prisma from "../../config/prisma.js";
 import { UserType } from "../user/type.js";
@@ -51,6 +51,7 @@ async function uploadCsvFile(
     const fileString = file.buffer.toString();
     const fileHash = hashFileData(fileString);
     const parsedData = await csvToJson(fileString);
+    const country = getUserCountry(parsedData[0]);
     let user: UserType | null = req.body.user;
     await prisma.$transaction(async (tx) => {
       //if user null create temporary user
@@ -62,8 +63,8 @@ async function uploadCsvFile(
       //remove existing user files to limit temp users to 1
       if (user.role === "TEMPORARY") await deleteUserFiles(user.id, tx);
 
-      await createFileEntry(user.id, fileHash, parsedData, tx);
-      await createSalesData(user.id, parsedData, fileHash, tx);
+      await createFileEntry(user.id, fileHash, parsedData, country, tx);
+      await createSalesData(user.id, parsedData, fileHash, country, tx);
     });
     res.json({
       userId: user?.id,

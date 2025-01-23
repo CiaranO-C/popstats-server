@@ -1,4 +1,3 @@
-
 interface CSVRow {
   [key: string]: string;
 }
@@ -8,7 +7,9 @@ type CSVFile = Array<CSVRow>;
 interface FieldMapType {
   "N/A": "Other";
   "**ANONYMIZED**": "Other";
-  "Sweaters": "Jumpers";
+  Sweaters: "Jumpers";
 }
 
-export type { CSVRow, CSVFile, FieldMapType };
+type CountryType = "GB" | "USA";
+
+export type { CSVRow, CSVFile, FieldMapType, CountryType };
