@@ -94,6 +94,8 @@ function checkIfPlaceholder(value: string) {
 }
 
 function parseMoney(value: string): Prisma.Decimal {
+  if (!value) return new Prisma.Decimal(0);
+
   const checkedValue = checkIfPlaceholder(value);
   const money = new Prisma.Decimal(checkedValue.replace(/[\p{Sc}]/gu, ""));
 
