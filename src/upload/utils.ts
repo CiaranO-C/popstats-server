@@ -89,8 +89,9 @@ function convertToHours(time) {
 }
 
 function checkIfPlaceholder(value: string) {
-  const checked = value === '="-"' || value === "N/A" ? "0" : value;
-  return checked;
+  const placeholders = ["N/A", "-", '="-"', "$-", "£-"];
+  const isPlaceholder = placeholders.includes(value);
+  return isPlaceholder ? "0" : value;
 }
 
 function parseMoney(value: string): Prisma.Decimal {
