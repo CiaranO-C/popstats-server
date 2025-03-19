@@ -12,7 +12,7 @@ function validateInput(value: string, regex: keyof typeof regexMap) {
 }
 
 function validateSignUp(username: string, password: string) {
-  if (!username || !password) return { message: "all fields required" };
+  if (!username || !password) return { error: "all fields required" };
 
   const sanitizedName = sanitizeUsername(username);
 
