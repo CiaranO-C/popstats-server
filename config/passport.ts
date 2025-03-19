@@ -1,62 +1,29 @@
 import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
-import bcrypt from "bcryptjs";
-import { User } from "@prisma/client";
-import prisma from "./prisma";
-import { GraphQLLocalStrategy } from "graphql-passport";
+import { Strategy as JWTStrategy, ExtractJwt } from "passport-jwt";
+import { findUser } from "../src/user/db";
 
 passport.use(
-  new GraphQLLocalStrategy(async (username: string, password: string, done) => {
-    try {
-      const user: User | null = await prisma.user.findUnique({
-        where: { username },
-      });
-
-      if (!user) {
-        return done(null, false, "Username does not exist");
-      }
-
-      const isMatch: boolean = await bcrypt.compare(password, user.password);
-
-      if (!isMatch) {
-        return done(null, false, "Incorrect password");
-      }
-
-      //Correct details entered
-      return done(null, user);
-    } catch (error) {
-      return done(error);
-    }
-  }),
-);
-
-/*passport.use(
-  "login",
-  new LocalStrategy(
-    async (username: string, password: string, done: Function) => {
+  new JWTStrategy(
+    {
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      secretOrKey: process.env.JWT_PRIVATE_KEY as string,
+    },
+    async (payload, done) => {
       try {
-        const user: User | null = await prisma.user.findUnique({
-          where: { username },
-        });
+        // if JWT valid find user in db
+        const user = await findUser(payload.userId);
 
-        if (!user) {
-          return done(null, false, { message: "Username does not exist" });
+        if (user) {
+          return done(null, user);
+        } else {
+          return done(null, false, { message: "Token has invalid user ID" });
         }
-
-        const isMatch: boolean = await bcrypt.compare(password, user.password);
-
-        if (!isMatch) {
-          return done(null, false, { message: "Incorrect password" });
-        }
-
-        //Correct details entered
-        return done(null, user);
       } catch (error) {
         console.error(error);
-        return done(error);
+        return done(error, false, { message: "Error during authentication" });
       }
     },
   ),
-);*/
+);
 
 export { passport };
