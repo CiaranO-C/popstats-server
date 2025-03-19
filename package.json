@@ -30,6 +30,7 @@
     "@fast-csv/parse": "^5.0.2",
     "@prisma/client": "^6.0.1",
     "@types/multer": "^1.4.12",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
@@ -38,6 +39,8 @@
     "graphql-http": "^1.22.2",
     "graphql-scalars": "^1.24.0",
     "multer": "^1.4.5-lts.1",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
     "xxhashjs": "^0.2.2"
   }
 }
